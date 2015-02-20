@@ -122,6 +122,17 @@ namespace Python.Runtime {
                     }
                 }
 
+                if (value is IEnumerable) {
+                    using (var resultlist = new PyList()) {
+                        foreach (object o in (IEnumerable)value) {
+                            using (var p = new PyObject(ToPython(o, o.GetType())))
+                                resultlist.Append(p);
+                        }
+                        Runtime.Incref(resultlist.Handle);
+                        return resultlist.Handle;
+                    }
+                }
+
                 return result;
 
             case TypeCode.String:
@@ -174,16 +185,6 @@ namespace Python.Runtime {
                 return Runtime.PyLong_FromUnsignedLongLong((ulong)value);
 
             default:
-	            if (value is IEnumerable) {
-                    using (var resultlist = new PyList()) {
-                        foreach (object o in (IEnumerable)value) {
-                            using (var p = new PyObject(ToPython(o, o.GetType())))
-                                resultlist.Append(p);
-                        }
-                        Runtime.Incref(resultlist.Handle);
-                        return resultlist.Handle;
-                    }
-                }
                 result = CLRObject.GetInstHandle(value, type);
                 return result;
             }
